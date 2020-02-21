@@ -146,6 +146,10 @@ const props = {
     type: Object,
     required: false,
     default: null
+  },
+  swap: {
+    type: Boolean,
+    default: false
   }
 };
 
