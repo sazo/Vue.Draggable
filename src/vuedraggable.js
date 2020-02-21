@@ -14,10 +14,12 @@ function buildAttribute(object, propName, value) {
 }
 
 function computeVmIndex(vnodes, element) {
+  console.log('computeVmIndex')
   return vnodes.map(elt => elt.elm).indexOf(element);
 }
 
 function computeIndexes(slots, children, isTransition, footerOffset) {
+  console.log('computeIndexes')
   if (!slots) {
     return [];
   }
@@ -31,10 +33,12 @@ function computeIndexes(slots, children, isTransition, footerOffset) {
 }
 
 function emit(evtName, evtData) {
+  console.log('emit', evtName, evtData)
   this.$nextTick(() => this.$emit(evtName.toLowerCase(), evtData));
 }
 
 function delegateAndEmit(evtName) {
+  console.log('delegateAndEmit')
   return evtData => {
     if (this.realList !== null) {
       this["onDrag" + evtName](evtData);
@@ -107,6 +111,7 @@ const readonlyProperties = ["Move", ...eventsListened, ...eventsToEmit].map(
   evt => "on" + evt
 );
 var draggingElement = null;
+var lastswapContext = null;
 
 const props = {
   options: Object,
@@ -251,6 +256,7 @@ const draggableComponent = {
   watch: {
     options: {
       handler(newOptionValue) {
+        console.log('options')
         this.updateOptions(newOptionValue);
       },
       deep: true
@@ -258,13 +264,15 @@ const draggableComponent = {
 
     $attrs: {
       handler(newOptionValue) {
+        console.log('$attrs')
         this.updateOptions(newOptionValue);
       },
       deep: true
     },
 
     realList() {
-      this.computeIndexes();
+      console.log('realList')
+      // this.computeIndexes();
     }
   },
 
@@ -406,38 +414,111 @@ const draggableComponent = {
     },
 
     onDragStart(evt) {
+      console.log('onDragStart')
+      // console.log(evt)
       this.context = this.getUnderlyingVm(evt.item);
       evt.item._underlying_vm_ = this.clone(this.context.element);
       draggingElement = evt.item;
     },
-
     onDragAdd(evt) {
-      const element = evt.item._underlying_vm_;
-      if (element === undefined) {
-        return;
+      console.log('onDragAdd')
+      console.log(evt)
+    
+      if (this.swap) {
+
+        // debugger
+        
+        // let oldItem = this.list[evt.newIndex]
+        lastswapContext = this.getUnderlyingVm(evt.swapItem)
+        this.spliceList(evt.newIndex, 1, evt.item._underlying_vm_)
+        this.computeIndexes()
+
+        // const targetContext = this.getUnderlyingVm(evt.item)
+        // if (!targetContext) {
+        //   return;
+        // }
+        
+        // evt.item._underlying_vm_ = this.clone(targetContext.element);       
+        // const element = targetContext.element 
+        // if (element === undefined) {
+        //   return;
+        // }
+        // const swapContext = this.getUnderlyingVm(evt.swapItem)
+        // if (!swapContext) {
+        //   return;
+        // }
+
+        // evt.swapItem._underlying_vm_ = this.clone(swapContext.element);        
+        // const swapElement = swapContext.element
+
+        // if (swapElement === undefined) {
+        //   return;
+        // }
+
+        // debugger
+
+        // const newIndex = this.getVmIndex(evt.newIndex);
+
+        // // let item = evt.item.cloneNode(true);
+        // // removeNode(evt.item);
+        // // insertNodeAt(evt.to, item, newIndex);
+
+        // const toComponent = this.getUnderlyingPotencialDraggableComponent(evt.to)
+        // toComponent.spliceList(newIndex, 1, element)
+
+        // toComponent.computeIndexes();
+
+        // const oldIndex = this.getVmIndex(evt.oldIndex);
+
+        // // let swapItem = evt.swapItem.cloneNode(true);
+        // // removeNode(evt.swapItem);
+        // // insertNodeAt(evt.from, swapItem, oldIndex);
+
+        // const fromComponent = this.getUnderlyingPotencialDraggableComponent(evt.from)
+        // fromComponent.spliceList(oldIndex, 1, swapElement)
+
+        // fromComponent.computeIndexes();
+
+      } else {
+        const element = evt.item._underlying_vm_;
+        if (element === undefined) {
+          return;
+        }
+        removeNode(evt.item);
+        const newIndex = this.getVmIndex(evt.newIndex);
+        this.spliceList(newIndex, 0, element);
+        this.computeIndexes();
+        const added = { element, newIndex };
+        this.emitChanges({ added });
       }
-      removeNode(evt.item);
-      const newIndex = this.getVmIndex(evt.newIndex);
-      this.spliceList(newIndex, 0, element);
-      this.computeIndexes();
-      const added = { element, newIndex };
-      this.emitChanges({ added });
     },
 
     onDragRemove(evt) {
-      insertNodeAt(this.rootContainer, evt.item, evt.oldIndex);
-      if (evt.pullMode === "clone") {
-        removeNode(evt.clone);
-        return;
+      console.log('onDragRemove')
+      console.log(evt)
+      if (this.swap) {
+        const { element } = lastswapContext
+        this.spliceList(evt.oldIndex, 1, element)
+        this.computeIndexes()
+        // debugger
+      } else {
+        insertNodeAt(this.rootContainer, evt.item, evt.oldIndex);
+        if (evt.pullMode === "clone") {
+          removeNode(evt.clone);
+          return;
+        }
+        const oldIndex = this.context.index;
+        this.spliceList(oldIndex, 1);
+        const removed = { element: this.context.element, oldIndex };
+        this.resetTransitionData(oldIndex);
+        this.emitChanges({ removed });
       }
-      const oldIndex = this.context.index;
-      this.spliceList(oldIndex, 1);
-      const removed = { element: this.context.element, oldIndex };
-      this.resetTransitionData(oldIndex);
-      this.emitChanges({ removed });
     },
 
     onDragUpdate(evt) {
+      console.log('onDragUpdate')
+      console.log(evt)
+
       if (this.swap) {
         const oldIndex = this.context.index;
         const newIndex = this.getVmIndex(evt.newIndex);
@@ -456,6 +537,7 @@ const draggableComponent = {
         const moved = { element: this.context.element, oldIndex, newIndex };
         this.emitChanges({ moved });
       }
+
     },
 
     updateProperty(evt, propertyName) {
@@ -479,6 +561,7 @@ const draggableComponent = {
     },
 
     onDragMove(evt, originalEvent) {
+      console.log('onDragMove')
       const onMove = this.move;
       if (!onMove || !this.realList) {
         return true;
@@ -492,10 +575,19 @@ const draggableComponent = {
         relatedContext,
         draggedContext
       });
+
       return onMove(sendEvt, originalEvent);
     },
 
-    onDragEnd() {
+    onDragEnd(evt) {
+      console.log('onDragEnd')
+
+      // if (this.swap) {
+      //    let context = this.getRelatedContextFromMoveEvent(evt)
+      //    evt.swapItem._underlying_vm_ = this.clone(context.element)
+      //    console.log(evt.swapItem)
+      // }
+
       this.computeIndexes();
       draggingElement = null;
     }
