@@ -33,7 +33,7 @@ function computeIndexes(slots, children, isTransition, footerOffset) {
 }
 
 function emit(evtName, evtData) {
-  console.log('emit', evtName, evtData)
+  // console.log('emit', evtName, evtData)
   this.$nextTick(() => this.$emit(evtName.toLowerCase(), evtData));
 }
 
@@ -111,7 +111,6 @@ const readonlyProperties = ["Move", ...eventsListened, ...eventsToEmit].map(
   evt => "on" + evt
 );
 var draggingElement = null;
-var lastswapContext = null;
 
 const props = {
   options: Object,
@@ -371,7 +370,7 @@ const draggableComponent = {
     },
 
     swapPosition (oldIndex, newIndex) {
-      console.log(JSON.stringify(this.list))
+      // console.log(JSON.stringify(this.list))
       const swapPosition = list =>
         list[oldIndex] = list.splice(newIndex, 1, list[oldIndex])[0];
       this.alterList(swapPosition);
@@ -422,14 +421,16 @@ const draggableComponent = {
     },
     onDragAdd(evt) {
       console.log('onDragAdd')
-      console.log(evt)
+      // console.log(evt)
     
       if (this.swap) {
 
         // debugger
         
         // let oldItem = this.list[evt.newIndex]
-        lastswapContext = this.getUnderlyingVm(evt.swapItem)
+
+        const lastswapContext = this.getUnderlyingVm(evt.swapItem)
+        evt.swapItem._underlying_vm_ = this.clone(lastswapContext.element)
         this.spliceList(evt.newIndex, 1, evt.item._underlying_vm_)
         this.computeIndexes()
 
@@ -495,12 +496,11 @@ const draggableComponent = {
 
     onDragRemove(evt) {
       console.log('onDragRemove')
-      console.log(evt)
+      // console.log(evt)
       if (this.swap) {
-        const { element } = lastswapContext
-        this.spliceList(evt.oldIndex, 1, element)
+        debugger
+        this.spliceList(evt.oldIndex, 1, evt.swapItem._underlying_vm_)
         this.computeIndexes()
-        // debugger
       } else {
         insertNodeAt(this.rootContainer, evt.item, evt.oldIndex);
         if (evt.pullMode === "clone") {
@@ -517,7 +517,7 @@ const draggableComponent = {
 
     onDragUpdate(evt) {
       console.log('onDragUpdate')
-      console.log(evt)
+      // console.log(evt)
 
       if (this.swap) {
         const oldIndex = this.context.index;
