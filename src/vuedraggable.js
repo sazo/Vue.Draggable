@@ -425,60 +425,28 @@ const draggableComponent = {
     
       if (this.swap) {
 
-        // debugger
-        
-        // let oldItem = this.list[evt.newIndex]
-
+        const element = evt.item._underlying_vm_;
+        if (element === undefined) {
+          return;
+        }
         const lastswapContext = this.getUnderlyingVm(evt.swapItem)
         evt.swapItem._underlying_vm_ = this.clone(lastswapContext.element)
-        this.spliceList(evt.newIndex, 1, evt.item._underlying_vm_)
-        this.computeIndexes()
-
-        // const targetContext = this.getUnderlyingVm(evt.item)
-        // if (!targetContext) {
-        //   return;
-        // }
-        
-        // evt.item._underlying_vm_ = this.clone(targetContext.element);       
-        // const element = targetContext.element 
-        // if (element === undefined) {
-        //   return;
-        // }
-        // const swapContext = this.getUnderlyingVm(evt.swapItem)
-        // if (!swapContext) {
-        //   return;
-        // }
-
-        // evt.swapItem._underlying_vm_ = this.clone(swapContext.element);        
-        // const swapElement = swapContext.element
-
-        // if (swapElement === undefined) {
-        //   return;
-        // }
 
         // debugger
+        insertNodeAt(evt.to, evt.swapItem, evt.newIndex);
+        insertNodeAt(evt.from, evt.item, evt.oldIndex);
 
-        // const newIndex = this.getVmIndex(evt.newIndex);
+        const newIndex = this.getVmIndex(evt.newIndex);
+        this.spliceList(newIndex, 1, element);
+        this.computeIndexes();
 
-        // // let item = evt.item.cloneNode(true);
-        // // removeNode(evt.item);
-        // // insertNodeAt(evt.to, item, newIndex);
-
-        // const toComponent = this.getUnderlyingPotencialDraggableComponent(evt.to)
-        // toComponent.spliceList(newIndex, 1, element)
-
-        // toComponent.computeIndexes();
-
-        // const oldIndex = this.getVmIndex(evt.oldIndex);
-
-        // // let swapItem = evt.swapItem.cloneNode(true);
-        // // removeNode(evt.swapItem);
-        // // insertNodeAt(evt.from, swapItem, oldIndex);
-
-        // const fromComponent = this.getUnderlyingPotencialDraggableComponent(evt.from)
-        // fromComponent.spliceList(oldIndex, 1, swapElement)
-
-        // fromComponent.computeIndexes();
+        
+        // const added = { element, newIndex };
+        // this.emitChanges({ added });
+        // const lastswapContext = this.getUnderlyingVm(evt.swapItem)
+        // evt.swapItem._underlying_vm_ = this.clone(lastswapContext.element)
+        // this.spliceList(evt.newIndex, 1, evt.item._underlying_vm_)
+        // this.computeIndexes()
 
       } else {
         const element = evt.item._underlying_vm_;
@@ -498,9 +466,13 @@ const draggableComponent = {
       console.log('onDragRemove')
       // console.log(evt)
       if (this.swap) {
-        debugger
-        this.spliceList(evt.oldIndex, 1, evt.swapItem._underlying_vm_)
+        this.spliceList(evt.oldIndex, 1)
+        this.spliceList(evt.oldIndex, 0, evt.swapItem._underlying_vm_)
         this.computeIndexes()
+        // debugger
+        // const swaped = { element: this.context.element, oldIndex: evt.oldIndex };
+        // this.resetTransitionData(evt.oldIndex);
+        // this.emitChanges({ swaped });
       } else {
         insertNodeAt(this.rootContainer, evt.item, evt.oldIndex);
         if (evt.pullMode === "clone") {
