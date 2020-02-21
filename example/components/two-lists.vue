@@ -2,26 +2,32 @@
   <div class="row">
     <div class="col-3">
       <h3>Draggable 1</h3>
-      <draggable class="list-group" :list="list1" group="people" @change="log">
+      <draggable class="list-group" id="draggable-1" :list="list1" group="people" @change="log"
+        :swap="true" :options="{ swap: 'true', swapClass: 'highlight' }"
+        :sort="true"
+       >
         <div
           class="list-group-item"
           v-for="(element, index) in list1"
-          :key="element.name"
+          :key="index"
         >
-          {{ element.name }} {{ index }}
+          {{ element.name }} {{ element.id }}
         </div>
       </draggable>
     </div>
 
     <div class="col-3">
       <h3>Draggable 2</h3>
-      <draggable class="list-group" :list="list2" group="people" @change="log">
+      <draggable class="list-group" id="draggable-2" :list="list2" group="people" @change="log" 
+        :swap="true" :options="{ swap: 'true', swapClass: 'highlight' }"
+        :sort="true"
+      >
         <div
           class="list-group-item"
           v-for="(element, index) in list2"
-          :key="element.name"
+          :key="index"
         >
-          {{ element.name }} {{ index }}
+          {{ element.name }} {{ element.id }}
         </div>
       </draggable>
     </div>
@@ -74,3 +80,9 @@ export default {
   }
 };
 </script>
+
+<style scoped>
+.highlight {
+  background-color: red;
+}
+</style>
