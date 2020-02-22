@@ -363,7 +363,6 @@ const draggableComponent = {
     },
 
     swapPosition (oldIndex, newIndex) {
-      console.log(JSON.stringify(this.list))
       const swapPosition = list =>
         list[oldIndex] = list.splice(newIndex, 1, list[oldIndex])[0];
       this.alterList(swapPosition);
@@ -459,7 +458,6 @@ const draggableComponent = {
       if (this.swap) {
         const oldIndex = this.context.index;
         const newIndex = this.getVmIndex(evt.newIndex);
-        console.log(oldIndex, newIndex)
         evt.from.replaceChild(evt.swapItem, evt.item)
         insertNodeAt(evt.from, evt.item, oldIndex)
         this.swapPosition(oldIndex, newIndex);
