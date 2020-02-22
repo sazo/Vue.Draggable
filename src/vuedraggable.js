@@ -437,13 +437,19 @@ const draggableComponent = {
 
     onDragRemove(evt) {
       if (this.swap) {
+        const { oldIndex, newIndex, from, to } = evt
+        const swapElement = evt.swapItem._underlying_vm_
         if (evt.pullMode === "clone") {
           removeNode(evt.clone);
         } else {
-          this.spliceList(evt.oldIndex, 1)
+          this.spliceList(oldIndex, 1)
         }
-        this.spliceList(evt.oldIndex, 0, evt.swapItem._underlying_vm_)
-        this.resetTransitionData(evt.oldIndex);
+        this.spliceList(oldIndex, 0, swapElement)
+        const swapped = {
+          element: this.context.element, swapElement,
+          fromIndex: oldIndex, toIndex: newIndex, to, from };
+        this.resetTransitionData(oldIndex);
+        this.emitChanges({ swapped });
       } else {
         insertNodeAt(this.rootContainer, evt.item, evt.oldIndex);
         if (evt.pullMode === "clone") {
