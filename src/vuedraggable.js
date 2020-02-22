@@ -416,25 +416,43 @@ const draggableComponent = {
       if (element === undefined) {
         return;
       }
-      removeNode(evt.item);
-      const newIndex = this.getVmIndex(evt.newIndex);
-      this.spliceList(newIndex, 0, element);
-      this.computeIndexes();
-      const added = { element, newIndex };
-      this.emitChanges({ added });
+      if (this.swap) {
+        const lastswapContext = this.getUnderlyingVm(evt.swapItem)
+        evt.swapItem._underlying_vm_ = this.clone(lastswapContext.element)
+
+        insertNodeAt(evt.to, evt.swapItem, evt.newIndex);
+        insertNodeAt(evt.from, evt.item, evt.oldIndex);
+
+        const newIndex = this.getVmIndex(evt.newIndex);
+        this.spliceList(newIndex, 1, element);
+        this.computeIndexes();
+      } else {
+        removeNode(evt.item);
+        const newIndex = this.getVmIndex(evt.newIndex);
+        this.spliceList(newIndex, 0, element);
+        this.computeIndexes();
+        const added = { element, newIndex };
+        this.emitChanges({ added });
+      }
     },
 
     onDragRemove(evt) {
-      insertNodeAt(this.rootContainer, evt.item, evt.oldIndex);
-      if (evt.pullMode === "clone") {
-        removeNode(evt.clone);
-        return;
+      if (this.swap) {
+        this.spliceList(evt.oldIndex, 1)
+        this.spliceList(evt.oldIndex, 0, evt.swapItem._underlying_vm_)
+        this.computeIndexes()
+      } else {
+        insertNodeAt(this.rootContainer, evt.item, evt.oldIndex);
+        if (evt.pullMode === "clone") {
+          removeNode(evt.clone);
+          return;
+        }
+        const oldIndex = this.context.index;
+        this.spliceList(oldIndex, 1);
+        const removed = { element: this.context.element, oldIndex };
+        this.resetTransitionData(oldIndex);
+        this.emitChanges({ removed });
       }
-      const oldIndex = this.context.index;
-      this.spliceList(oldIndex, 1);
-      const removed = { element: this.context.element, oldIndex };
-      this.resetTransitionData(oldIndex);
-      this.emitChanges({ removed });
     },
 
     onDragUpdate(evt) {
