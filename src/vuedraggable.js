@@ -466,13 +466,16 @@ const draggableComponent = {
 
     onDragUpdate(evt) {
       if (this.swap) {
-        const oldIndex = this.context.index;
-        const newIndex = this.getVmIndex(evt.newIndex);
+        const { oldIndex, newIndex, from, to } = evt
+        const swapContext = this.getUnderlyingVm(evt.swapItem)
+        const swapElement = this.clone(swapContext.element)
         evt.from.replaceChild(evt.swapItem, evt.item)
         insertNodeAt(evt.from, evt.item, oldIndex)
         this.swapPosition(oldIndex, newIndex);
-        const swaped = { element: this.context.element, oldIndex, newIndex };
-        this.emitChanges({ swaped });
+        const swapped = {
+          element: this.context.element, swapElement,
+          fromIndex: oldIndex, toIndex: newIndex, to, from };
+        this.emitChanges({ swapped });
       } else {
         removeNode(evt.item);
         insertNodeAt(evt.from, evt.item, evt.oldIndex);
